@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../lib/auth-context";
 import { ArrowLeft, MapPin, ScanLine, AlertCircle, Camera, CheckCircle2 } from "lucide-react";
 import { Html5QrcodeScanner } from "html5-qrcode";
 import { toast } from "react-toastify";
 
 export default function GuardPatrol() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [scanning, setScanning] = useState(false);
   const [location, setLocation] = useState<{lat: number, lng: number} | null>(null);
   const [scannedResult, setScannedResult] = useState<string | null>(null);
@@ -51,24 +53,25 @@ export default function GuardPatrol() {
   }, [scanning]);
 
   const handleVerify = async (qrCode: string) => {
-    if (!location) {
+    if (!location && user?.uid !== "mock_user") {
       toast.error("Waiting for GPS signal...");
       return;
     }
     
     try {
-      // Direct Firestore transaction for client-side demo
-      const { collection, addDoc, serverTimestamp } = await import("firebase/firestore");
-      const { db, auth } = await import("../../lib/firebase");
-      
-      if (!auth.currentUser) {
+      if (user?.uid === "mock_user") {
         // We are in local Mock Mode
         setTimeout(() => toast.success("Mock Checkpoint Verified!"), 500);
+        setTimeout(() => navigate(-1), 2000);
         return;
       }
+
+      // Direct Firestore transaction for client-side demo
+      const { collection, addDoc, serverTimestamp } = await import("firebase/firestore");
+      const { db } = await import("../../lib/firebase");
       
       await addDoc(collection(db, "patrolLogs"), {
-        guardId: auth.currentUser.uid,
+        guardId: user?.uid,
         qrToken: qrCode,
         lat: location.lat,
         lng: location.lng,
@@ -157,6 +160,17 @@ export default function GuardPatrol() {
                 <Camera className="w-5 h-5 mr-3" />
                 Scan Checkpoint QR
               </button>
+              {user?.uid === "mock_user" && (
+                <button
+                  onClick={() => {
+                     setScannedResult("MOCK_QR_DATA");
+                     handleVerify("MOCK_QR_DATA");
+                  }}
+                  className="w-full py-3 bg-neutral-700 hover:bg-neutral-600 text-white rounded-xl font-bold flex items-center justify-center mt-4"
+                >
+                  Simulate Scan (Dev Mode)
+                </button>
+              )}
             </div>
           )}
         </div>

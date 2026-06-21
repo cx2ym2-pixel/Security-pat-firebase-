@@ -22,9 +22,9 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <div className="flex h-screen bg-neutral-50 overflow-hidden">
+    <div className="flex h-screen bg-neutral-50 overflow-hidden print:h-auto print:bg-white print:overflow-visible">
       {/* Sidebar */}
-      <aside className="w-64 bg-white border-r border-neutral-200 flex flex-col">
+      <aside className="print:hidden w-64 bg-white border-r border-neutral-200 flex flex-col">
         <div className="h-16 flex items-center px-6 border-b border-neutral-200">
           <Shield className="w-6 h-6 mr-2 text-black" />
           <span className="font-bold text-lg tracking-tight">Admin Console</span>
@@ -58,8 +58,8 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto">
-        <div className="max-w-6xl mx-auto p-8">
+      <main className="flex-1 overflow-y-auto print:overflow-visible">
+        <div className="max-w-6xl mx-auto p-8 print:p-0 print:max-w-none print:w-full">
           {children}
         </div>
       </main>
