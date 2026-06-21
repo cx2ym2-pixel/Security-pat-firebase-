@@ -1,0 +1,33 @@
+{
+  "rulesEndpoint": "firestore.rules",
+  "collections": {
+    "users": {
+        "admin-user-id": {
+            "name": "Super Admin",
+            "email": "admin@example.com",
+            "role": "admin"
+        },
+        "guard-1-id": {
+            "name": "John Guard",
+            "email": "guard1@example.com",
+            "role": "guard"
+        }
+    },
+    "locations": {
+        "loc-1": {
+            "name": "Main Gate",
+            "latitude": 37.7749,
+            "longitude": -122.4194,
+            "radius": 50,
+            "qrCodeToken": "qr-main-gate-secret-123"
+        },
+        "loc-2": {
+            "name": "Server Room",
+            "latitude": 37.7750,
+            "longitude": -122.4195,
+            "radius": 30,
+            "qrCodeToken": "qr-server-room-secret-456"
+        }
+    }
+  }
+}
