@@ -3,6 +3,7 @@ import { useAuth } from "../../lib/auth-context";
 import { LogOut, ShieldAlert, Navigation, Play, User as UserIcon } from "lucide-react";
 import { Card, CardContent } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
+import { NetworkStatusWidget } from "../../components/NetworkStatusWidget";
 
 export default function GuardDashboard() {
   const { user, signOut } = useAuth();
@@ -60,6 +61,10 @@ export default function GuardDashboard() {
             </div>
           </CardContent>
         </Card>
+
+        <div className="w-full">
+          <NetworkStatusWidget />
+        </div>
 
         <Button onClick={startPatrol} className="w-full h-16 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-xl shadow-emerald-600/20 text-lg transition-transform active:scale-95">
           <Play className="w-6 h-6 mr-3 fill-current" />

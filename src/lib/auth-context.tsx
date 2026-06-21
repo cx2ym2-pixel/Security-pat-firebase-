@@ -1,13 +1,12 @@
-import { createContext, useContext, useEffect, useState, useRef, ReactNode } from "react";
-import { User, onAuthStateChanged, signOut as firebaseSignOut } from "firebase/auth";
-import { auth, db } from "./firebase";
-import { doc, getDoc } from "firebase/firestore";
+import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { User, db } from "./db";
 
 interface AuthContextType {
   user: User | null;
   role: "admin" | "guard" | null;
   loading: boolean;
   signOut: () => Promise<void>;
+  signIn: (user: User) => void;
   setMockUser: (mockRole: "admin" | "guard") => void;
 }
 
@@ -16,6 +15,7 @@ const AuthContext = createContext<AuthContextType>({
   role: null,
   loading: true,
   signOut: async () => {},
+  signIn: () => {},
   setMockUser: () => {}
 });
 
@@ -23,60 +23,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [role, setRole] = useState<"admin" | "guard" | null>(null);
   const [loading, setLoading] = useState(true);
-  const isMocked = useRef(false);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      // If we've already mocked a login, do not override unless user logs out
-      if (isMocked.current) {
-        setLoading(false);
-        return;
+    const savedUserId = localStorage.getItem('currentUserId');
+    if (savedUserId) {
+      const savedUser = db.getUserById(savedUserId);
+      if (savedUser) {
+        setUser(savedUser);
+        setRole(savedUser.role);
       }
-      
-      setUser(currentUser);
-      if (currentUser) {
-        try {
-          const userDoc = await getDoc(doc(db, "users", currentUser.uid));
-          if (userDoc.exists()) {
-            setRole(userDoc.data().role as "admin" | "guard");
-          } else {
-            console.warn("User document not found for UI role, defaulting to guard");
-            setRole("guard");
-          }
-        } catch (error) {
-          console.error("Failed to fetch user role", error);
-          setRole("guard");
-        }
-      } else {
-        setRole(null);
-      }
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
+    }
+    setLoading(false);
   }, []);
 
+  const signIn = (authData: User) => {
+    localStorage.setItem('currentUserId', authData.uid);
+    setUser(authData);
+    setRole(authData.role);
+  };
+
   const signOut = async () => {
-    if (user && user.uid === "mock_user") {
-      isMocked.current = false;
-      setUser(null);
-      setRole(null);
-    } else {
-      await firebaseSignOut(auth);
-    }
+    localStorage.removeItem('currentUserId');
+    setUser(null);
+    setRole(null);
   };
 
   const setMockUser = (mockRole: "admin" | "guard") => {
-    isMocked.current = true;
-    setUser({ uid: "mock_user", email: `preview-${mockRole}@example.com` } as User);
-    setRole(mockRole);
+    const defaultUser: User = { uid: "mock_user", email: `preview-${mockRole}@example.com`, displayName: 'Guest User', role: mockRole };
+    signIn(defaultUser);
+    db.saveUser(defaultUser);
   };
 
   return (
-    <AuthContext.Provider value={{ user, role, loading, signOut, setMockUser }}>
+    <AuthContext.Provider value={{ user, role, loading, signOut, signIn, setMockUser }}>
       {children}
     </AuthContext.Provider>
   );
 }
 
 export const useAuth = () => useContext(AuthContext);
+
