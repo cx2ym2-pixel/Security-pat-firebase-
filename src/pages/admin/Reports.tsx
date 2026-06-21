@@ -4,6 +4,7 @@ import { Button } from "../../components/ui/button";
 import { toast } from "react-toastify";
 import { db } from "../../lib/db";
 import { useEffect, useState } from "react";
+import { Download } from "lucide-react";
 
 export default function AdminReports() {
   const [logs, setLogs] = useState<any[]>([]);
@@ -20,7 +21,7 @@ export default function AdminReports() {
 
     let data: any[][] = [];
 
-    if (reportName === "Daily Summary") {
+    if (reportName === "Patrol Logs" || reportName === "Daily Summary") {
       data = [
         ["Date & Time", "Guard Name", "Location Checkpoint", "Status", "Verification QR Card"],
         ...logs.map((log) => [
@@ -75,6 +76,13 @@ export default function AdminReports() {
             <h1 className="text-2xl font-bold tracking-tight">System Reports</h1>
             <p className="text-neutral-500">Generate and export patrol and compliance reports.</p>
           </div>
+          <Button 
+            className="bg-emerald-600 hover:bg-emerald-700 text-white"
+            onClick={() => exportToCSV("Patrol Logs")}
+          >
+            <Download className="w-4 h-4 mr-2" />
+            Export Patrol Logs CSV
+          </Button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
